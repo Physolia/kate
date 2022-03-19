@@ -70,6 +70,11 @@ KateConfigDialog::KateConfigDialog(KateMainWindow *parent)
     connect(this, &KateConfigDialog::accepted, this, &KateConfigDialog::slotApply);
     connect(buttonBox()->button(QDialogButtonBox::Apply), &QPushButton::clicked, this, &KateConfigDialog::slotApply);
     connect(buttonBox()->button(QDialogButtonBox::Help), &QPushButton::clicked, this, &KateConfigDialog::slotHelp);
+
+    setFaceType(KPageDialog::Tree);
+    if (auto trees = findChild<QTreeView *>()) {
+        trees->setRootIsDecorated(false);
+    }
 }
 
 QSize KateConfigDialog::sizeHint() const
