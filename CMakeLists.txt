@@ -38,7 +38,7 @@ include(FeatureSummary)
 add_definitions(-DQT_NO_FOREACH)
 
 # Required here so that the version comparison below works
-find_package(Qt5Widgets ${QT_MIN_VERSION} CONFIG REQUIRED)
+find_package(Qt${QT_MAJOR_VERSION}Widgets ${QT_MIN_VERSION} CONFIG REQUIRED)
 
 # Required here so that the ki18n_install/kdoctools_install calls injected by
 # the release scripts work.
@@ -52,11 +52,17 @@ find_package(KF5 ${KF5_DEP_VERSION}
 
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050d00)
 
-ecm_optional_add_subdirectory(shared)
-ecm_optional_add_subdirectory(addons)
-ecm_optional_add_subdirectory(kwrite)
-ecm_optional_add_subdirectory(kate)
-ecm_optional_add_subdirectory(doc)
+# FIXME: build only parts ATM for Qt6
+if (QT_MAJOR_VERSION STREQUAL "6")
+    ecm_optional_add_subdirectory(shared)
+    ecm_optional_add_subdirectory(kwrite)
+else()
+    ecm_optional_add_subdirectory(shared)
+    ecm_optional_add_subdirectory(addons)
+    ecm_optional_add_subdirectory(kwrite)
+    ecm_optional_add_subdirectory(kate)
+    ecm_optional_add_subdirectory(doc)
+endif()
 
 feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 

@@ -1,10 +1,10 @@
 find_package(KF5Plasma ${KF5_DEP_VERSION} QUIET)
 set_package_properties(KF5Plasma PROPERTIES PURPOSE "Required to build the sessionapplet addon")
 
-find_package(Qt5Widgets ${QT_MIN_VERSION} QUIET)
-set_package_properties(Qt5Widgets PROPERTIES PURPOSE "Required to build the sessionapplet addon")
+find_package(Qt${QT_MAJOR_VERSION}Widgets ${QT_MIN_VERSION} QUIET)
+set_package_properties(Qt${QT_MAJOR_VERSION}Widgets PROPERTIES PURPOSE "Required to build the sessionapplet addon")
 
-if(NOT KF5Plasma_FOUND OR NOT Qt5Widgets_FOUND)
+if(NOT KF5Plasma_FOUND OR NOT Qt${QT_MAJOR_VERSION}Widgets_FOUND)
   return()
 endif()
 
@@ -17,7 +17,7 @@ target_link_libraries(
     KF5::I18n
     KF5::Plasma
     KF5::KIOGui
-    Qt5::Widgets
+    Qt${QT_MAJOR_VERSION}::Widgets
 )
 
 target_sources(

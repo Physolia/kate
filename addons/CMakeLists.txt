@@ -12,11 +12,11 @@ ecm_optional_add_subdirectory(compiler-explorer)
 ecm_optional_add_subdirectory(externaltools)
 ecm_optional_add_subdirectory(filebrowser)
 ecm_optional_add_subdirectory(filetree)
-ecm_optional_add_subdirectory(gdbplugin) 
+ecm_optional_add_subdirectory(gdbplugin)
 ecm_optional_add_subdirectory(git-blame) # Inline git-blame viewer
 ecm_optional_add_subdirectory(kate-ctags)
 ecm_optional_add_subdirectory(katebuild-plugin)
-ecm_optional_add_subdirectory(katesql) 
+ecm_optional_add_subdirectory(katesql)
 ecm_optional_add_subdirectory(konsole)
 ecm_optional_add_subdirectory(latexunicodecompletion)
 ecm_optional_add_subdirectory(lspclient) # Language Server Protocol (LSP) client plugin.
