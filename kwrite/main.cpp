@@ -24,6 +24,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QTextCodec>
 #include <QUrlQuery>
@@ -57,11 +58,13 @@ extern "C" Q_DECL_EXPORT int main(int argc, char **argv)
     }
 #endif
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     /**
      * enable high dpi support
      */
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
+#endif
 
     /**
      * allow fractional scaling
@@ -252,20 +255,10 @@ extern "C" Q_DECL_EXPORT int main(int argc, char **argv)
             KWrite *t = kapp.newWindow();
 
             if (parser.isSet(QStringLiteral("stdin"))) {
-                QTextStream input(stdin, QIODevice::ReadOnly);
-
-                // set chosen codec
-                if (codec) {
-                    input.setCodec(codec);
-                }
-
-                QString line;
-                QString text;
-
-                do {
-                    line = input.readLine();
-                    text.append(line + QLatin1Char('\n'));
-                } while (!line.isNull());
+                // get full stdin content with right encoding
+                QFile input;
+                input.open(stdin, QIODevice::ReadOnly);
+                const QString text = codec ? codec->toUnicode(input.readAll()) : QString::fromLocal8Bit(input.readAll());
 
                 KTextEditor::Document *doc = t->activeView()->document();
                 if (doc) {
