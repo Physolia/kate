@@ -74,9 +74,10 @@ private:
     QToolButton *m_pushBtn;
     QToolButton *m_pullBtn;
     QToolButton *m_cancelBtn;
-    GitWidgetTreeView *m_treeView;
-    GitStatusModel *m_model;
     KateProject *m_project;
+    GitWidgetTreeView *m_treeView;
+    QVector<bool> m_nodeIsExpanded;
+    GitStatusModel *m_model;
     QLineEdit *m_filterLineEdit;
     /** This ends with "/", always remember this */
     QString m_gitPath;

@@ -193,6 +193,7 @@ static QToolButton *toolButton(const QString &icon, const QString &tooltip, cons
 
 GitWidget::GitWidget(KateProject *project, KTextEditor::MainWindow *mainWindow, KateProjectPluginView *pluginView)
     : m_project(project)
+    , m_nodeIsExpanded(GitStatusModel::NodeFile)
     , m_mainWin(mainWindow)
     , m_pluginView(pluginView)
     , m_mainView(new QWidget(this))
@@ -201,6 +202,11 @@ GitWidget::GitWidget(KateProject *project, KTextEditor::MainWindow *mainWindow, 
     setDotGitPath();
 
     m_treeView = new GitWidgetTreeView(this);
+    // Set desired default expand/collapse state of nodes
+    m_nodeIsExpanded[GitStatusModel::NodeStage] = true;
+    m_nodeIsExpanded[GitStatusModel::NodeChanges] = true;
+    m_nodeIsExpanded[GitStatusModel::NodeConflict] = true;
+    m_nodeIsExpanded[GitStatusModel::NodeUntrack] = false;
 
     buildMenu();
     m_menuBtn = toolButton(QStringLiteral("application-menu"), QString());
@@ -740,25 +746,32 @@ void GitWidget::treeViewSingleClicked(const QModelIndex &idx)
 
 void GitWidget::treeViewDoubleClicked(const QModelIndex &idx)
 {
-    handleClick(idx, m_pluginView->plugin()->doubleClickAcion());
+    const auto type = idx.data(GitStatusModel::TreeItemType).toInt();
+    if (type == GitStatusModel::NodeFile) {
+        handleClick(idx, m_pluginView->plugin()->doubleClickAcion());
+        return;
+    }
+
+    // Node will toggle expand/collapse, remember that in advance
+    m_nodeIsExpanded[type] = !m_nodeIsExpanded.at(type);
 }
 
 void GitWidget::hideEmptyTreeNodes()
 {
-    auto expand = [this](GitStatusModel::ItemType t) {
-        auto *model = m_treeView->model();
-        auto index = model->index(t, 0);
-        if (!index.isValid() || index.data(GitStatusModel::TreeItemType).toInt() == GitStatusModel::NodeUntrack) {
-            return;
+    auto *model = m_treeView->model();
+    for (int i = 0;; ++i) {
+        auto index = model->index(i, 0);
+        if (!index.isValid()) {
+            break;
         }
-        if (model->rowCount(index) > 0 && !m_treeView->isExpanded(index)) {
-            m_treeView->expand(index);
-        }
-    };
 
-    expand(GitStatusModel::NodeStage);
-    expand(GitStatusModel::NodeChanges);
-    expand(GitStatusModel::NodeConflict);
+        auto t = index.data(GitStatusModel::TreeItemType).toInt();
+        if (m_nodeIsExpanded[t]) {
+            m_treeView->expand(index);
+        } else {
+            m_treeView->collapse(index);
+        }
+    }
 
     m_treeView->resizeColumnToContents(0);
     m_treeView->resizeColumnToContents(1);
