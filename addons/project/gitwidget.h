@@ -76,7 +76,6 @@ private:
     QToolButton *m_cancelBtn;
     KateProject *m_project;
     GitWidgetTreeView *m_treeView;
-    QVector<bool> m_nodeIsExpanded;
     GitStatusModel *m_model;
     QLineEdit *m_filterLineEdit;
     /** This ends with "/", always remember this */
@@ -112,7 +111,6 @@ private:
 
     QMenu *stashMenu();
 
-    void hideEmptyTreeNodes();
     void treeViewContextMenuEvent(QContextMenuEvent *e);
     void selectedContextMenu(QContextMenuEvent *e);
 

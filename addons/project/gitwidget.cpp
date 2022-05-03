@@ -193,7 +193,6 @@ static QToolButton *toolButton(const QString &icon, const QString &tooltip, cons
 
 GitWidget::GitWidget(KateProject *project, KTextEditor::MainWindow *mainWindow, KateProjectPluginView *pluginView)
     : m_project(project)
-    , m_nodeIsExpanded(GitStatusModel::NodeFile)
     , m_mainWin(mainWindow)
     , m_pluginView(pluginView)
     , m_mainView(new QWidget(this))
@@ -202,11 +201,6 @@ GitWidget::GitWidget(KateProject *project, KTextEditor::MainWindow *mainWindow, 
     setDotGitPath();
 
     m_treeView = new GitWidgetTreeView(this);
-    // Set desired default expand/collapse state of nodes
-    m_nodeIsExpanded[GitStatusModel::NodeStage] = true;
-    m_nodeIsExpanded[GitStatusModel::NodeChanges] = true;
-    m_nodeIsExpanded[GitStatusModel::NodeConflict] = true;
-    m_nodeIsExpanded[GitStatusModel::NodeUntrack] = false;
 
     buildMenu();
     m_menuBtn = toolButton(QStringLiteral("application-menu"), QString());
@@ -280,6 +274,7 @@ GitWidget::GitWidget(KateProject *project, KTextEditor::MainWindow *mainWindow, 
     m_treeView->installEventFilter(this);
     m_treeView->setRootIsDecorated(false);
     m_treeView->setAllColumnsShowFocus(true);
+    m_treeView->expandAll();
 
     if (m_treeView->style()) {
         auto indent = m_treeView->style()->pixelMetric(QStyle::PM_TreeViewIndentation, nullptr, m_treeView);
@@ -746,27 +741,43 @@ void GitWidget::treeViewSingleClicked(const QModelIndex &idx)
 
 void GitWidget::treeViewDoubleClicked(const QModelIndex &idx)
 {
-    const auto type = idx.data(GitStatusModel::TreeItemType).toInt();
-    if (type == GitStatusModel::NodeFile) {
-        handleClick(idx, m_pluginView->plugin()->doubleClickAcion());
-        return;
-    }
-
-    // Node will toggle expand/collapse, remember that in advance
-    m_nodeIsExpanded[type] = !m_nodeIsExpanded.at(type);
+    handleClick(idx, m_pluginView->plugin()->doubleClickAcion());
 }
 
-void GitWidget::hideEmptyTreeNodes()
+void GitWidget::parseStatusReady()
 {
-    auto *model = m_treeView->model();
+    // Set desired default expand/collapse state of nodes
+    // GitStatusModel::NodeStage    = true;
+    // GitStatusModel::NodeChanges  = true;
+    // GitStatusModel::NodeConflict = true;
+    // GitStatusModel::NodeUntrack  = false;
+    QVector<bool> nodeIsExpanded({true, true, true, false});
+
+    // Remember collapse/expand state
+    const auto *model = m_treeView->model();
     for (int i = 0;; ++i) {
-        auto index = model->index(i, 0);
+        const auto index = model->index(i, 0);
         if (!index.isValid()) {
             break;
         }
 
-        auto t = index.data(GitStatusModel::TreeItemType).toInt();
-        if (m_nodeIsExpanded[t]) {
+        const auto t = index.data(GitStatusModel::TreeItemType).toInt();
+        nodeIsExpanded[t] = m_treeView->isExpanded(index);
+    }
+
+    // Set new data
+    GitUtils::GitParsedStatus s = m_gitStatusWatcher.result();
+    m_model->setStatusItems(std::move(s), m_pluginView->plugin()->showGitStatusWithNumStat());
+
+    // Restore collapse/expand state
+    for (int i = 0;; ++i) {
+        const auto index = model->index(i, 0);
+        if (!index.isValid()) {
+            break;
+        }
+
+        const auto t = index.data(GitStatusModel::TreeItemType).toInt();
+        if (nodeIsExpanded[t]) {
             m_treeView->expand(index);
         } else {
             m_treeView->collapse(index);
@@ -775,14 +786,6 @@ void GitWidget::hideEmptyTreeNodes()
 
     m_treeView->resizeColumnToContents(0);
     m_treeView->resizeColumnToContents(1);
-}
-
-void GitWidget::parseStatusReady()
-{
-    GitUtils::GitParsedStatus s = m_gitStatusWatcher.result();
-
-    m_model->setStatusItems(std::move(s), m_pluginView->plugin()->showGitStatusWithNumStat());
-    hideEmptyTreeNodes();
 }
 
 void GitWidget::branchCompareFiles(const QString &from, const QString &to)
