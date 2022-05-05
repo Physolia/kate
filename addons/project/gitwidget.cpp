@@ -30,6 +30,7 @@
 #include <QHeaderView>
 #include <QInputMethodEvent>
 #include <QLineEdit>
+#include <QMap>
 #include <QMenu>
 #include <QPainter>
 #include <QPlainTextEdit>
@@ -55,7 +56,6 @@
 #include <KTextEditor/View>
 
 #include <kfts_fuzzy_match.h>
-#include <qmap.h>
 
 class NumStatStyle final : public QStyledItemDelegate
 {
