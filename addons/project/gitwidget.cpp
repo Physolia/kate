@@ -753,12 +753,8 @@ void GitWidget::parseStatusReady()
     nodeIsExpanded.insert(GitStatusModel::NodeUntrack, false);
 
     const auto *model = m_treeView->model();
-    for (int i = 0;; ++i) {
+    for (int i = 0; i < model->rowCount(); ++i) {
         const auto index = model->index(i, 0);
-        if (!index.isValid()) {
-            break;
-        }
-
         const auto t = index.data(GitStatusModel::TreeItemType).toInt();
         nodeIsExpanded[t] = m_treeView->isExpanded(index);
     }
@@ -768,12 +764,8 @@ void GitWidget::parseStatusReady()
     m_model->setStatusItems(std::move(s), m_pluginView->plugin()->showGitStatusWithNumStat());
 
     // Restore collapse/expand state
-    for (int i = 0;; ++i) {
+    for (int i = 0; i < model->rowCount(); ++i) {
         const auto index = model->index(i, 0);
-        if (!index.isValid()) {
-            break;
-        }
-
         const auto t = index.data(GitStatusModel::TreeItemType).toInt();
         if (!nodeIsExpanded.contains(t) || nodeIsExpanded[t]) {
             m_treeView->expand(index);
