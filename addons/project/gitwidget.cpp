@@ -55,6 +55,7 @@
 #include <KTextEditor/View>
 
 #include <kfts_fuzzy_match.h>
+#include <qmap.h>
 
 class NumStatStyle final : public QStyledItemDelegate
 {
@@ -746,14 +747,11 @@ void GitWidget::treeViewDoubleClicked(const QModelIndex &idx)
 
 void GitWidget::parseStatusReady()
 {
-    // Set desired default expand/collapse state of nodes
-    // GitStatusModel::NodeStage    = true;
-    // GitStatusModel::NodeChanges  = true;
-    // GitStatusModel::NodeConflict = true;
-    // GitStatusModel::NodeUntrack  = false;
-    QVector<bool> nodeIsExpanded({true, true, true, false});
-
     // Remember collapse/expand state
+    // The default is expanded, so only add here which should be not expanded
+    QMap<int, bool> nodeIsExpanded;
+    nodeIsExpanded.insert(GitStatusModel::NodeUntrack, false);
+
     const auto *model = m_treeView->model();
     for (int i = 0;; ++i) {
         const auto index = model->index(i, 0);
@@ -777,7 +775,7 @@ void GitWidget::parseStatusReady()
         }
 
         const auto t = index.data(GitStatusModel::TreeItemType).toInt();
-        if (nodeIsExpanded[t]) {
+        if (!nodeIsExpanded.contains(t) || nodeIsExpanded[t]) {
             m_treeView->expand(index);
         } else {
             m_treeView->collapse(index);
